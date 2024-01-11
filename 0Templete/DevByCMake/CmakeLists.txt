@@ -1,0 +1,45 @@
+# CMAKE最小版本
+cmake_minimum_required(VERSION 3.10)
+# 指定编译平台/架构与语言标准
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+# 指定工具链
+set(CMAKE_C_COMPILER "arm-none-eabi-gcc")
+set(CMAKE_CXX_COMPILER "arm-none-eabi-g++")
+set(CMAKE_ASM_COMPILER "arm-none-eabi-gcc")  # 修正为 CMAKE_ASM_COMPILER
+
+# 跳过编译器检查
+set(CMAKE_C_COMPILER_FORCED TRUE)
+set(CMAKE_CXX_COMPILER_FORCED TRUE)
+
+project(Template C CXX ASM)  # 设置工程，语言为C,CPP和汇编
+
+set(TARGET_NAME appTemplate)  # 设置变量target
+
+######################################
+# 构建变量
+######################################
+# debug build?
+set(DEBUG  "1")
+# optimization
+set(OPT  "-Og")
+# 开启详细输出
+# set(CMAKE_VERBOSE_MAKEFILE ON)
+
+#编译选项和链接参数
+set(MCU_FLAGS -mcpu=cortex-m4 -mfloat-abi=hard -mfpu=fpv4-sp-d16)
+set(OPTIMIZE_FLAGS -g -O0)
+set(LINK_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/toolchain/microchip/same51_dfp/gcc/gcc/same51n20a_flash.1d")
+add_compile_options(-flto -mthumb -mabi=aapcs ${MCU_FLAGS} ${OPTIMIZE_FLAGS}  # 修正为 OPTIMIZE_FLAGS
+    -Wall -Werror -std=c99 -ffunction-sections -fdata-sections -nostdlib -nostartfiles)
+
+    add_link_options(${MCU_FLAGS} -T${LINK_SCRIPT} -Wl,-gc-sections -specs=nano.specs -specs=nosys.specs)  # 修正为 OPTIMIZE_FLAGS
+
+add_executable(${TARGET_NAME} app/main.c)  # 可执行文件增加main.c文件
+
+#生成hex文件的命令
+add_custom_command(
+    TARGET ${TARGET_NAME} POST_BUILD  # 修正为 POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O ihex ${TARGET_NAME} ${TARGET_NAME}.hex  # 修正为 ${TARGET_NAME}
+)
